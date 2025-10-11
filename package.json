@@ -1,7 +1,20 @@
 {
+  "name": "job-test",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "mocha"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  },
   "devDependencies": {
-    "@eslint/js": "^9.11.1",
+    "@eslint/js": "^9.37.0",
+    "chai": "^6.2.0",
     "eslint": "^8.57.1",
-    "globals": "^15.9.0"
+    "globals": "^15.15.0",
+    "mocha": "^11.7.4"
   }
 }
