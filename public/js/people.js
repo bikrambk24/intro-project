@@ -72,14 +72,26 @@ function addpersoninput() {
 /**
  * 
  */
-function editperson( ev ) {
+/**
+ * Edit a person's details
+ * @param { Event } ev
+ */
+function editperson(ev) {
+  clearform("personform");
+  const personrow = findancestorbytype(ev.target, "tr");
+  setformfieldvalue("personform-name", personrow.person.name);
+  setformfieldvalue("personform-email", personrow.person.email || "");
+  setformfieldvalue("personform-notes", personrow.person.notes || "");
 
-  clearform( "personform" )
-  const personrow = findancestorbytype( ev.target, "tr" )
-  setformfieldvalue( "personform-name", personrow.person.name )
-
-  showform( "personform", () => console.log("submitted peopleform") )
-
+  showform("personform", async () => {
+    await updateperson(
+      personrow.person.id,
+      getformfieldvalue("personform-name"),
+      getformfieldvalue("personform-email"),
+      getformfieldvalue("personform-notes")
+    );
+    await gopeople();
+  });
 }
 
 /**
