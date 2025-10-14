@@ -1,105 +1,94 @@
+export function showform(formid, submitCallback) {
+  const formcontainer = document.getElementById(formid);
+  if (!formcontainer) {
+    console.error(`Form container with ID ${formid} not found`);
+    return;
+  }
+  formcontainer.style.display = 'flex';
 
+  const form = formcontainer.querySelector('form');
+  if (!form) {
+    console.error(`Form element not found in ${formid}`);
+    return;
+  }
 
-let formsubmitcallback
-document.addEventListener( "DOMContentLoaded", async function() {
+  const newForm = form.cloneNode(true);
+  // @ts-ignore
+  form.parentNode.replaceChild(newForm, form);
 
-  const closeelements = document.querySelectorAll( ".close" )
-  closeelements.forEach( element => {
-    element.addEventListener( "click", ( e ) => {
-      e.preventDefault()
-      closallforms()
-    } )
-  } )
+  // @ts-ignore
+  const closeButton = newForm.querySelector('.close');
+  if (closeButton) {
+    closeButton.addEventListener('click', () => {
+      formcontainer.style.display = 'none';
+    });
+  } else {
+    console.error('Close button not found in form');
+  }
 
-  const formelements = document.querySelectorAll( "form" )
-  formelements.forEach( element => {
-    element.addEventListener( "submit", ( e ) => {
-      e.preventDefault()
+  // @ts-ignore
+  newForm.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    try {
+      await submitCallback();
+      formcontainer.style.display = 'none';
+    } catch (error) {
+      console.error('Form submission error:', error);
+      alert('Error saving data: ' + error.message);
+    }
+  });
+}
 
-      document.getElementById( "content" ).style.display = "block"
-      // @ts-ignore (it is part of HTML Element)
-      element.parentNode.style.display = "none"
+export function getformfieldvalue(fieldid) {
+  const field = document.getElementById(fieldid);
+  if (!field) {
+    console.error(`Field with ID ${fieldid} not found`);
+    return '';
+  }
+  // @ts-ignore
+  return field.value || '';
+}
 
-      if( formsubmitcallback ) formsubmitcallback()
-    } )
-  } )
-} )
-
-/**
- * Hide all divs with class container and show main content
- */
-function closallforms() {
-  document.querySelectorAll( "div.container" ).forEach( ( element ) => {
+export function setformfieldvalue(fieldid, value) {
+  const field = document.getElementById(fieldid);
+  if (field) {
     // @ts-ignore
-    element.style.display = "none"
-  } )
-  document.getElementById( "content" ).style.display = "block"
+    field.value = value || '';
+  } else {
+    console.error(`Field with ID ${fieldid} not found`);
+  }
 }
 
-/**
- * Show form by id name
- * @param { string } formid 
- */
-export function showform( formid, onsubmit ) {
-  document.getElementById( "content" ).style.display = "none"
-
-  const form = document.getElementById( formid )
-  form.style.display = "block"
-
-  formsubmitcallback = onsubmit
-}
-
-/**
- * 
- * @param { string } formitemid 
- */
-export function getformfieldvalue( formitemid ) {
-  // @ts-ignore (it does!)
-  return document.getElementById( formitemid ).value
-}
-
-/**
- * 
- * @param { string } formitemid
- * @param { string } value
- */
-export function setformfieldvalue( formitemid, value ) {
-  // @ts-ignore (it does!)
-  document.getElementById( formitemid ).value = value
-}
-
-
-/**
- * 
- * @param { string } formid 
- */
-export function clearform( formid ) {
-  const form = document.getElementById( formid )
-
-  form.querySelectorAll( "input" ).forEach( ( input ) => input.value = "" )
-  form.querySelectorAll( "textarea" ).forEach( ( input ) => input.value = "" )
-}
-
-/**
- * 
- * @param { string } formid
- * @returns { HTMLTableSectionElement }
- */
-export function gettablebody( formid ) {
-  return document.getElementById( formid ).getElementsByTagName( "tbody" )[ 0 ]
-}
-
-/**
- * 
- * @param { string } formid 
- */
-export function cleartablerows( formid ) {
-  
-  const table = document.getElementById( formid )
-
-  const rows = table.getElementsByTagName( "tr" )
-  for( let i = rows.length - 1; i > 0; i-- ) {
+export function clearform(formid) {
+  const formcontainer = document.getElementById(formid);
+  if (!formcontainer) {
+    console.error(`Form container with ID ${formid} not found`);
+    return;
+  }
+  const inputs = formcontainer.querySelectorAll('input, textarea, select');
+  inputs.forEach(input => {
     // @ts-ignore
-    table.deleteRow( i )
+    if (input.type !== 'submit' && input.type !== 'button') {
+      // @ts-ignore
+      input.value = '';
+    }
+  });
+}
+
+export function gettablebody(tableid) {
+  const table = document.getElementById(tableid);
+  if (!table) {
+    console.error(`Table with ID ${tableid} not found`);
+    return null;
+  }
+  return table.querySelector('tbody');
+}
+
+export function cleartablerows(tableid) {
+  const tbody = gettablebody(tableid);
+  if (tbody) {
+    tbody.innerHTML = '';
+  } else {
+    console.error(`Table body for ${tableid} not found`);
   }
 }

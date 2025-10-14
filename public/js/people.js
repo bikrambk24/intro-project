@@ -1,120 +1,97 @@
+import { getdata, putdata } from './api.js';
+import { showform, getformfieldvalue, setformfieldvalue, clearform, gettablebody, cleartablerows } from './form.js';
+import { findancestorbytype } from './dom.js';
 
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('addperson').addEventListener('click', addPersonInput);
+  await goPeople();
+});
 
-import { getdata, putdata } from "./api.js"
-import { showform, getformfieldvalue, setformfieldvalue, clearform, gettablebody, cleartablerows } from "./form.js"
-import { findancestorbytype } from "./dom.js"
-
-document.addEventListener( "DOMContentLoaded", async function() {
-
-  document.getElementById( "addperson" ).addEventListener( "click", addpersoninput )
-  await gopeople()
-} )
-
-
-/**
- * 
- * @returns { Promise< object > }
- */
-async function fetchpeople() {
-  return await getdata( "people" )
+async function fetchPeople() {
+  return await getdata('people');
 }
 
-/**
- * @param { string } name
- * @param { string } email
- * @param { string } notes
- * @returns { Promise< object > }
- */
-async function addperson( name, email, notes ) {
-  await putdata( "people", { name, email, notes } )
+async function addPerson(name, email, notes) {
+  await putdata('people', { name, email, notes });
 }
 
-/**
- * 
- * @param { string } id 
- * @param { string } name 
- * @param { string } email 
- * @param { string } notes 
- */
-async function updateperson( id, name, email, notes ) {
-  await putdata( "people", { id, name, email, notes } )
+async function updatePerson(id, name, email, notes) {
+  await putdata('people', { id, name, email, notes });
 }
 
+async function goPeople() {
+  try {
+    const people = await fetchPeople();
+    cleartablerows('peopletable');
 
-
-/**
- * @returns { Promise }
- */
-async function gopeople() {
-  const p = await fetchpeople()
-  cleartablerows( "peopletable" )
-
-  for( const pi in p ) {
-    addpersondom( p[ pi ] )
+    for (const person of people) {
+      addPersonDom(person);
+    }
+  } catch (error) {
+    console.error('Error fetching people:', error);
   }
 }
 
-/**
- * 
- */
-function addpersoninput() {
-
-  clearform( "personform" )
-  showform( "personform", async () => {
-
-    await addperson( getformfieldvalue( "personform-name" ), 
-                      getformfieldvalue( "personform-email" ), 
-                      getformfieldvalue( "personform-notes" ) )
-    await gopeople()
-  } )
-}
-
-/**
- * 
- */
-/**
- * Edit a person's details
- * @param { Event } ev
- */
-function editperson(ev) {
-  clearform("personform");
-  const personrow = findancestorbytype(ev.target, "tr");
-  setformfieldvalue("personform-name", personrow.person.name);
-  setformfieldvalue("personform-email", personrow.person.email || "");
-  setformfieldvalue("personform-notes", personrow.person.notes || "");
-
-  showform("personform", async () => {
-    await updateperson(
-      personrow.person.id,
-      getformfieldvalue("personform-name"),
-      getformfieldvalue("personform-email"),
-      getformfieldvalue("personform-notes")
-    );
-    await gopeople();
+function addPersonInput() {
+  clearform('personform');
+  showform('personform', async () => {
+    const name = getformfieldvalue('personform-name');
+    if (!name) {
+      alert('Name is required');
+      return;
+    }
+    await addPerson(name, getformfieldvalue('personform-email'), getformfieldvalue('personform-notes'));
+    await goPeople();
   });
 }
 
-/**
- * 
- * @param { object } person
- */
-export function addpersondom( person ) {
+function editPerson(ev) {
+  clearform('personform');
+  const personRow = findancestorbytype(ev.target, 'tr');
+  // @ts-ignore
+  setformfieldvalue('personform-name', personRow.person.name);
+  // @ts-ignore
+  setformfieldvalue('personform-email', personRow.person.email || '');
+  // @ts-ignore
+  setformfieldvalue('personform-notes', personRow.person.notes || '');
 
-  const table = gettablebody( "peopletable" )
-  const newrow = table.insertRow()
+  showform('personform', async () => {
+    const name = getformfieldvalue('personform-name');
+    if (!name) {
+      alert('Name is required');
+      return;
+    }
+    // @ts-ignore
+    await updatePerson(personRow.person.id, name, getformfieldvalue('personform-email'), getformfieldvalue('personform-notes'));
+    await goPeople();
+  });
+}
 
-  const cells = []
-  for( let i = 0; i < ( 2 + 7 ); i++ ) {
-    cells.push( newrow.insertCell( i ) )
+export function addPersonDom(person) {
+  const table = gettablebody('peopletable');
+  const newRow = table.insertRow();
+  const cells = [
+    newRow.insertCell(0), // Name
+    newRow.insertCell(1), // Schedule Day 1
+    newRow.insertCell(2), // Day 2
+    newRow.insertCell(3), // Day 3
+    newRow.insertCell(4), // Day 4
+    newRow.insertCell(5), // Day 5
+    newRow.insertCell(6), // Day 6
+    newRow.insertCell(7), // Day 7
+    newRow.insertCell(8)  // Action
+  ];
+  // @ts-ignore
+  newRow.person = person;
+  cells[0].innerText = person.name;
+  // Placeholder
+  for (let i = 1; i <= 7; i++) {
+    cells[i].innerText = 'N/A';
   }
 
-  // @ts-ignore
-  newrow.person = person
-  cells[ 0 ].innerText = person.name
-
-  const editbutton = document.createElement( "button" )
-  editbutton.textContent = "Edit"
-  editbutton.addEventListener( "click", editperson )
-
-  cells[ 8 ].appendChild( editbutton )
+  const editButton = document.createElement('button');
+  editButton.textContent = 'Edit';
+  editButton.classList.add('btn-secondary');
+  editButton.addEventListener('click', editPerson);
+  cells[8].appendChild(editButton);
 }
